@@ -1,33 +1,32 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+### this code will be heavily commented on to help me learn and remember the syntax ###
+from fastapi import FastAPI     # Import FastAPI to create the API
+from fastapi.middleware.cors import CORSMiddleware      #Import CORS to allow frontend requests
+from fastapi import Request
 
+# Create an instance of the FastAPI app
 app = FastAPI()
 
-# Allow frontend to communicate with backend
+# Handle CORS (Cross-Origin Resource Sharing) so the frontend can talk to the backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (can restrict it later)
+    allow_origins=["*"],    # Allows requests from any origin (localhost, other servers, etc.)
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],    # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],    # Allows all HTTP headers
 )
 
-# Defining a data model to send data from frontend to backend
-class UserInput(BaseModel):
-    text: str
+@app.get("/")
+def home():
+    return {"message": "Welcome to my API. Use /send-data to post data."}
 
+# This is the API endpoint the fontend will call
 @app.post("/send-data")
-def send_data(user_input : UserInput):
-    print(f"Recieved from frontend: {user_input.text}")
-    response = f"You said: {user_input.text}"
-    return {"message": response}
+async def send_data(request: Request):
+    body = await request.json()
+    text = body.get("text", "")
+    print(f"Recieved from frontend: {text}")     # This will appear in the terminal when someone sends data from the frontend
+    return {"message": f"You said: {text}"}    # Return a JSON response to the frontend
 
-# Purpose of this code 
-#         V
-# 1. It creates and API endpoint (/sent-data) that the frontend can call
-# 2. It listens for POST requests from frontend
-# 3. It recieves the text input from the frontend and prints it in the terminal
-# 4. It sends a resonse back to the frontend
+
 
 # To run the backend of the server "uvicorn main:app --reload" in environment & directory terminal
